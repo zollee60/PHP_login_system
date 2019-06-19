@@ -1,20 +1,15 @@
 <?php
 require_once "config.php";
-require "class/User.php";
+require "model/User.php";
 require "class/RegForm.php";
 
-$user = new User();
 $form = new RegForm();
+$user = new User();
 
 if($_SERVER["REQUEST_METHOD"] == "POST"){
 
-    $user->setEmail(trim($_POST["user_email"]));
-    $user->setSur_name(trim($_POST["sur_name"]));
-    $user->setLast_name(trim($_POST["last_name"]));
-    $user->setPassword(trim($_POST["password"]));
-    $user->setConf_password(trim($_POST["confirm_password"]));
-
-    $user->registerUser($pdo);
+    $user->setAttributes($_POST);
+    $user->registerUser();
 }
 ?>
 

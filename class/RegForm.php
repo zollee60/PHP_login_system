@@ -10,7 +10,7 @@ class RegForm{
     public function __construct(){
         $this->labela = array("Vezetéknév", "Keresztnév", "E-mail cím", "Jelszó", "Jelszó megerősítés");
         $this->error = array("names","names","email","password","conf_password");
-        $this->fname = array("sur_name","last_name","user_email","password","confirm_password");
+        $this->fname = array('surName','lastName','email','password','confPassword');
         $this->itype = array("text","text","text","password","password");
     }
 

@@ -1,7 +1,7 @@
 <?php
 
 require_once "config.php";
-require "class/User.php";
+require "model/User.php";
 require "class/RegForm.php";
 
 session_start();
@@ -11,15 +11,14 @@ if(User::loggedIn()){
     exit;
 }
 
-$user = new User();
+
 $form = new RegForm();
+$user = new User();
 
 if($_SERVER["REQUEST_METHOD"] == "POST"){
 
-    $user->setEmail(trim($_POST["user_email"]));
-    $user->setPassword(trim($_POST["password"]));
-
-    $user->loginUser($pdo);
+    $user->setAttributes($_POST);
+    $user->loginUser();
 
 }
 ?>

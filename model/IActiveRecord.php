@@ -2,7 +2,7 @@
 
 interface IActiveRecord {
 
-    public function tableName();
-    public function primaryKey();
+    public static function tableName();
+    public static function primaryKey();
 
 }

@@ -1,7 +1,6 @@
 <?php
-require "IUserModel.php";
 
-abstract class UserModel implements IUserModel
+abstract class ErrorModel implements IUserModel
 {
     // == constants ==
     const

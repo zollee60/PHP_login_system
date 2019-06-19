@@ -1,4 +1,7 @@
 <?php
+require "UserModel.php";
+require "IActiveRecord.php";
+require "DBConnenction.php";
 
 abstract class ActiveRecord extends UserModel implements IActiveRecord {
 
@@ -6,7 +9,7 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
         ERROR_INVALID_CONDITION = 'Invalid find condition!';
 
     public function getAttributeNames() {
-        return [ $this->primaryKey() ];
+        return [ $this->primaryKey(), 'email',  'password', 'confPassword', 'surName', 'lastName'];
     }
 
     public static function findOne( $condition ) {
@@ -27,19 +30,54 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
 
     }
 
-    protected static function findOneByPk( $primaryKey ) {
-        // TODO: Find in database by primary key
-        return [ 'id' => $primaryKey ];
+    protected static function findOneByPk($primaryKey) {
+        $tableName = self::tableName();
+        $sql = "SELECT * FROM usertable WHERE id = :id";
+
+        $result = [];
+        $pdo = DBConn::connect();
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam('id',$param_id,PDO::PARAM_INT);
+        $param_id = $primaryKey;
+        $stmt->execute();
+        if($stmt->rowCount() == 1){
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+        unset($stmt);
+        unset($pdo);
+        return $result;
     }
 
     protected static function findOneByAttributes( $attributes ) {
-        // TODO: Find in database by attributes
-        return $attributes;
+        array_key_exists('id',$attributes) ? $id = $attributes['id'] : $id = '';
+        array_key_exists('email',$attributes) ? $userEmail = $attributes['email'] : $userEmail = '';
+
+        $tableName = self::tableName();
+        $result = [];
+        if(!empty($id)){
+            $result = self::findOneByPk($id);
+        } elseif (!empty($userEmail)) {
+            $sql = "SELECT * FROM usertable WHERE user_email = :user_email";
+
+            $pdo = DBConn::connect();
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindParam('user_email',$param_email,PDO::PARAM_STR);
+            $param_email = $userEmail;
+            $stmt->execute();
+            if($stmt->rowCount() == 1){
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            }
+            unset($stmt);
+            unset($pdo);
+        }
+        return $result;
     }
 
     protected static function findOneByQueryString( $queryString ) {
-        // TODO: Find in database by attributes
-        return [];
+        $query_array = [];
+        parse_url($queryString, $query_array);
+
+        return self::findOneByAttributes($query_array);
     }
 
     public static function findAll( $condition ) {
@@ -62,20 +100,62 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
      * Find records by attributes
      * @param array $attributes
      * @return array
+     * @throws Exception
      */
     protected static function findAllByAttributes( $attributes ) {
-        // TODO: Find in database by attributes
-        return [];
+        array_key_exists('sur_name',$attributes) ? $surName = $attributes['sur_name'] : $surName = '';
+        array_key_exists('last_name',$attributes) ? $lastName = $attributes['last_name'] : $lastName = '';
+
+        $tableName = self::tableName();
+        $pdo = DBConn::connect();
+        $result = [];
+        if(!empty($surName)){
+            if(!empty($lastName)){
+                $sql = "SELECT * FROM usertable WHERE sur_name = :surName AND last_name = :lastName";
+                $stmt = $pdo->prepare($sql);
+                $stmt->bindParam('surName',$param_sname,PDO::PARAM_STR);
+                $stmt->bindParam('lastName',$param_lname,PDO::PARAM_STR);
+                $param_lname = $lastName;
+                $param_sname = $surName;
+                $stmt->execute();
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                unset($stmt);
+            } else{
+                $sql = "SELECT * FROM usertable WHERE sur_name = :surName";
+                $stmt = $pdo->prepare($sql);
+                $stmt->bindParam('surName',$param_sname,PDO::PARAM_STR);
+                $param_sname = $surName;
+                $stmt->execute();
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                unset($stmt);
+            }
+        } elseif(!empty($lastName)){
+            $sql = "SELECT * FROM usertable WHERE last_name = :lastName";
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindParam('lastName',$param_lname,PDO::PARAM_STR);
+            $param_lname = $lastName;
+            $stmt->execute();
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            unset($stmt);
+        } else{
+            throw new Exception( self::ERROR_INVALID_CONDITION );
+        }
+        unset($pdo);
+
+        return $result;
     }
 
     /**
      * Find records by query-string
      * @param string $queryString
      * @return array
+     * @throws Exception
      */
     protected static function findAllByQueryString( $queryString ) {
-        // TODO: Find in database by attributes
-        return [];
+        $query_array = [];
+        parse_url($queryString, $query_array);
+
+        return self::findAllByAttributes($query_array);
     }
 
     /**
@@ -95,7 +175,28 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
      * @return int|null
      */
     protected function update() {
-        // TODO: Update record in the database
+        $attributes = $this->getAttributes();
+        $id = $this->getAttribute($this->primaryKey());
+        $userEmail = $attributes['email'];
+        $surName = $attributes['surName'];
+        $lastName = $attributes['lastName'];
+        $password = password_hash($attributes['password'], PASSWORD_DEFAULT);
+
+        $pdo = DBConn::connect();
+
+        $sql = "UPDATE usertable
+                SET user_email = $userEmail, password = $password, sur_name = $surName, last_name = $lastName
+                WHERE id = $id";
+
+        try{
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute();
+
+            unset($stmt);
+        }
+        catch (PDOException $e){print $e->getMessage();}
+        unset($pdo);
+
         return $this->getAttribute( $this->primaryKey() );
     }
 
@@ -104,10 +205,45 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
      * @return int|null
      */
     protected function insert() {
-        // TODO: Insert record into the database
-        // TODO: Set record's primary key to the last inserted ID
-        $this->setAttribute( $this->primaryKey(), time() ); // Fake id
+        $attributes = $this->getAttributes();
+        $userEmail = $attributes['email'];
+        $surName = $attributes['surName'];
+        $lastName = $attributes['lastName'];
+        $password = password_hash($attributes['password'], PASSWORD_DEFAULT);
+
+        $pdo = DBConn::connect();
+
+        $sql = "INSERT INTO usertable(user_email, password, sur_name, last_name)
+                VALUES (:email, :password, :surName, :lastName)";
+
+        try{
+            $stmt = $pdo->prepare($sql);
+            $data = [
+                'email' => $this->getAttribute('email'),
+                'password' => password_hash($this->getAttribute('password'), PASSWORD_DEFAULT),
+                'surName' => $this->getAttribute('surName'),
+                'lastName' => $this->getAttribute('lastName'),
+            ];
+            $stmt->execute($data);
+            $lastId = $pdo->lastInsertId();
+            $this->setAttribute( $this->primaryKey(), $lastId);
+
+            unset($stmt);
+        }
+        catch (PDOException $e){print $e->getMessage();}
+        unset($pdo);
+
         return $this->getAttribute( $this->primaryKey() );
+    }
+
+    public static function tableName()
+    {
+        return "usertable";
+    }
+
+    public static function primaryKey()
+    {
+        return "id";
     }
 
 }
