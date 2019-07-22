@@ -110,26 +110,28 @@ class User extends ActiveRecord {
                         session_start();
 
                         $_SESSION["loggedin"] = true;
-                        $_SESSION["id"] = $result['id'];
-                        $_SESSION["user_email"] = $result['email'];
-                        $_SESSION["lastName"] = $result['lastName'];
-                        $_SESSION["surName"] = $result['surName'];
+                        $_SESSION["id"] = $result->getAttribute('id');
+                        $_SESSION["email"] = $result->getAttribute('email');
+                        $_SESSION["lastName"] = $result->getAttribute('lastName');
+                        $_SESSION["surName"] = $result->getAttribute('surName');
 
                         $this->setAttributes($result);
 
                         header("location: index.php");
                     } else{
                         $this->setError("password", "A jelszó helytelen!");
-                        die;
+
                     }
+                } else{
+                    $this->setError("email", "ROSSZ EMAIL");
                 }
             } else{
                 $this->setError("password", "Add meg a jelszavad!");
-                die;
+
             }
         } else{
             $this->setError("email", "Add meg az e-mail címed!");
-            die;
+            
         }
     }
 }

@@ -26,7 +26,7 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
         if( $data === null )
             return null;
 
-        return new static( $data );
+        return new static($data);
 
     }
 
@@ -41,7 +41,7 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
         $param_id = $primaryKey;
         $stmt->execute();
         if($stmt->rowCount() == 1){
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $result = $stmt->fetch();
         }
         unset($stmt);
         unset($pdo);
@@ -57,7 +57,7 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
         if(!empty($id)){
             $result = self::findOneByPk($id);
         } elseif (!empty($userEmail)) {
-            $sql = "SELECT * FROM usertable WHERE user_email = :user_email";
+            $sql = "SELECT * FROM usertable WHERE email = :user_email";
 
             $pdo = DBConn::connect();
             $stmt = $pdo->prepare($sql);
@@ -65,7 +65,7 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
             $param_email = $userEmail;
             $stmt->execute();
             if($stmt->rowCount() == 1){
-                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                $result = $stmt->fetch();
             }
             unset($stmt);
             unset($pdo);
@@ -111,7 +111,7 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
         $result = [];
         if(!empty($surName)){
             if(!empty($lastName)){
-                $sql = "SELECT * FROM usertable WHERE sur_name = :surName AND last_name = :lastName";
+                $sql = "SELECT * FROM usertable WHERE surName = :surName AND lastName = :lastName";
                 $stmt = $pdo->prepare($sql);
                 $stmt->bindParam('surName',$param_sname,PDO::PARAM_STR);
                 $stmt->bindParam('lastName',$param_lname,PDO::PARAM_STR);
@@ -121,7 +121,7 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
                 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 unset($stmt);
             } else{
-                $sql = "SELECT * FROM usertable WHERE sur_name = :surName";
+                $sql = "SELECT * FROM usertable WHERE surName = :surName";
                 $stmt = $pdo->prepare($sql);
                 $stmt->bindParam('surName',$param_sname,PDO::PARAM_STR);
                 $param_sname = $surName;
@@ -130,7 +130,7 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
                 unset($stmt);
             }
         } elseif(!empty($lastName)){
-            $sql = "SELECT * FROM usertable WHERE last_name = :lastName";
+            $sql = "SELECT * FROM usertable WHERE lastName = :lastName";
             $stmt = $pdo->prepare($sql);
             $stmt->bindParam('lastName',$param_lname,PDO::PARAM_STR);
             $param_lname = $lastName;
@@ -185,7 +185,7 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
         $pdo = DBConn::connect();
 
         $sql = "UPDATE usertable
-                SET user_email = $userEmail, password = $password, sur_name = $surName, last_name = $lastName
+                SET email = $userEmail, password = $password, surName = $surName, lastName = $lastName
                 WHERE id = $id";
 
         try{
@@ -206,14 +206,9 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
      */
     protected function insert() {
         $attributes = $this->getAttributes();
-        $userEmail = $attributes['email'];
-        $surName = $attributes['surName'];
-        $lastName = $attributes['lastName'];
-        $password = password_hash($attributes['password'], PASSWORD_DEFAULT);
-
         $pdo = DBConn::connect();
 
-        $sql = "INSERT INTO usertable(user_email, password, sur_name, last_name)
+        $sql = "INSERT INTO usertable(email, password, surName, lastName)
                 VALUES (:email, :password, :surName, :lastName)";
 
         try{
