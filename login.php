@@ -7,7 +7,7 @@ require "class/RegForm.php";
 session_start();
 
 if(User::loggedIn()){
-    header("location: index.php");
+    header("location: index.html");
     exit;
 }
 $form = new RegForm();

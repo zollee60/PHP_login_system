@@ -121,7 +121,7 @@ class User extends ActiveRecord {
 
                         $this->setAttributes($result);
 
-                        header("location: index.php");
+                        header("location: userPage.php");
                     } else{
                         $this->setError("password", "A jelszó helytelen!");
                     }

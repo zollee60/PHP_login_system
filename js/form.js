@@ -7,40 +7,18 @@ formElementProps.set("confPassword", {name: "confPassword", input: "password", e
 
 const formGroupElements = ["label", "input", "span"];
 
-function process(scope){
-    let email = document.getElementById("email").value;
-    let password = document.getElementById("password").value;
-    let user = {email: email, password: password};
-    if(scope === "register"){
-        let surName = document.getElementById("surName").value;
-        let lastName = document.getElementById("lastName").value;
-        let confPassword = document.getElementById("confPassword").value;
-        user.surName = surName;
-        user.lastName = lastName;
-        user.confPassword = confPassword;
+let session = {
+    scope: "login",
+    setScope: function (scope) {
+        this.scope = scope;
+        document.getElementById("form-wrapper").appendChild(createForm(scope));
     }
-    let userJSON = JSON.stringify(user);
-    let xhr = new XMLHttpRequest();
-    let errorType;
-    xhr.open("POST", "process.php");
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onreadystatechange = function () {
-        if(xhr.readyState === 4 && xhr.status === 200) {
-            let error = JSON.parse(xhr.responseText);
-            if(!error.hasOwnProperty("noerror")){
-                if(error.hasOwnProperty("email")) errorType = "password";
-                if(error.hasOwnProperty("password")) errorType = "password";
-                document.getElementById(errorType).classList.add("has-error");
-                document.getElementById(errorType + "span").innerHTML = error[errorType];
-            }
-        }
-    };
-    xhr.send(userJSON);
-}
+};
 
 function createFormGroup(groupName){
     let g = document.createElement("div");
     g.className = "form-group";
+    g.id = groupName+"G";
     let props = formElementProps.get(groupName);
     for (let i = 0; i < formGroupElements.length; i++){
         let fge = document.createElement(formGroupElements[i]);
@@ -61,28 +39,88 @@ function createFormGroup(groupName){
     return g;
 }
 
+function createLink(scope){
+    let text = document.createElement("p");
+    let link = document.createElement("a");
+    link.href = "#";
+    link.id = "lr-link";
+    text.id = "lr-text";
+    if(scope === "login"){
+        link.innerHTML = "Regisztráció";
+        text.innerHTML = "Nincs még fiókod? ";
+        link.addEventListener("click", function () {
+            session.setScope("register");
+        });
+    }
+    if(scope === "register"){
+        link.innerHTML = "Bejelentkezés";
+        text.innerHTML = "Már van fiókod? ";
+        link.addEventListener("click", function () {
+            session.setScope("login");
+        });
+    }
+    text.appendChild(link);
+    return text;
+}
+
+function process(scope) {
+    let inputs = document.getElementsByTagName("input");
+    let data = {scope: scope};
+    for(let i = 0; i < inputs.length; i++){
+        data[inputs[i].name] = inputs[i].value;
+    }
+    let dataJSON = JSON.stringify(data);
+    let xhrSend = new XMLHttpRequest();
+    xhrSend.onload = function () {};
+    xhrSend.open("post", "process.php", true);
+    xhrSend.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    xhrSend.send(dataJSON);
+
+    let xhrGet = new XMLHttpRequest();
+    xhrGet.onload = function () {
+        let resData = JSON.parse(this.responseText);
+        console.log(resData);
+        Object.keys(resData).forEach(function (key) {
+            let e = resData[key];
+            if(document.getElementById(key+"span")!==null){
+                let div = document.getElementById(key+"G");
+                div.classList.add("has-error");
+                let span = document.getElementById(key+"span");
+                span.innerHTML = e;
+            }
+        });
+    };
+    xhrGet.open("get", "process.php", true);
+    xhrGet.send();
+}
+
 function createForm(scope){
+    if(document.getElementById("form")!==null){
+        let form = document.getElementById("form");
+        document.getElementById("form-wrapper").removeChild(form);
+    }
     let form = document.createElement("form");
     form.method = "post";
     form.id = "form";
     let buttons = document.createElement("div");
     buttons.className = "form-group";
-    let text = document.createElement("p");
-    let link = document.createElement("a");
+    let title = document.createElement("h2");
     if(scope === "login"){
+        title.innerHTML = "Bejelentkezés";
+        form.appendChild(title);
         form.appendChild(createFormGroup("email"));
         form.appendChild(createFormGroup("password"));
         let login = document.createElement("input");
         login.type = "submit";
         login.className = "btn btn-primary";
         login.value = "Bejelentkezés";
-        login.id = "login"
-        text.innerHTML = "Nincs még fiókod?";
-        link.href = "register.php";
-        link.innerHTML = "Regisztráció";
+        login.id = "login";
         buttons.appendChild(login);
+
     }
     if(scope === "register"){
+        title.innerHTML = "Regisztráció";
+        form.appendChild(title);
         formElementProps.forEach(((value, key) => form.appendChild(createFormGroup(key))));
         let register = document.createElement("input");
         register.type = "submit";
@@ -93,37 +131,23 @@ function createForm(scope){
         reset.type = "reset";
         reset.className = "btn btn-deafult";
         reset.value = "Törlés";
-        text.innerHTML = "Már van fiókod?";
-        link.href = "login.php";
-        link.innerHTML = "Bejelentkezés";
         buttons.appendChild(register);
         buttons.appendChild(reset);
     }
-    text.appendChild(link);
+    let link = createLink(scope);
     form.appendChild(buttons);
-    form.appendChild(text);
+    form.appendChild(link);
+    form.addEventListener("submit", function () {
+        process(scope);
+    });
 
     return form;
 }
 
-
 document.addEventListener('DOMContentLoaded', function () {
-    let scope;
-    if(document.URL.includes("login")){
-        scope = "login";
-    } else {
-        scope = "register";
-    }
-    document.getElementById("form-wrapper").appendChild(createForm(scope));
-    if(scope === "register"){
-        document.getElementById("register").addEventListener("click",function () {
-            process(scope);
-        })
-    }else{
-        document.getElementById("login").addEventListener("click",function () {
-            process(scope);
-        })
-    }
+    document.getElementById("form-wrapper").appendChild(createForm(session.scope));
 });
+
+
 
 

@@ -4,7 +4,7 @@ require_once "config.php";
 require "model/User.php";
 
 session_start();
- 
+
 if(!User::loggedIn()){
     header("location: login.php");
     exit;
@@ -22,7 +22,7 @@ if(!User::loggedIn()){
        
 </head>
 <body>
-    <div class="wrapper">
+    <div class="wrapper" id="form-wrapper">
         <h1>Szia, <b><?= htmlspecialchars($_SESSION["surName"]); ?></b>. Üdvözöllek az oldalon.</h1>
         <p>
             <a href="logout.php" class="btn btn-danger">Kijelentkezés</a>
