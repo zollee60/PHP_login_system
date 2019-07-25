@@ -10,6 +10,10 @@ class User extends ActiveRecord {
         $this->setAttributes($attributes);
     }
 
+    public function getAllErrors(){
+        return $this->error;
+    }
+
     public function getError($key) {
         if(!empty($this->error[$key])) {
             return $this->error[$key];
@@ -91,7 +95,7 @@ class User extends ActiveRecord {
             if($this->validatePasswords()){
                 if($this->validateNames()){
                     $this->save();
-                    header("location: login.php");
+                    header("location: index.html");
                 }
             }
         }
@@ -117,21 +121,16 @@ class User extends ActiveRecord {
 
                         $this->setAttributes($result);
 
-                        header("location: index.php");
+                        header("location: userPage.php");
                     } else{
                         $this->setError("password", "A jelszó helytelen!");
-
                     }
-                } else{
-                    $this->setError("email", "ROSSZ EMAIL");
                 }
             } else{
                 $this->setError("password", "Add meg a jelszavad!");
-
             }
         } else{
             $this->setError("email", "Add meg az e-mail címed!");
-            
         }
     }
 }

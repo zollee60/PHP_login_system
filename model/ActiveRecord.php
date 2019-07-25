@@ -111,7 +111,7 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
         $result = [];
         if(!empty($surName)){
             if(!empty($lastName)){
-                $sql = "SELECT * FROM usertable WHERE surName = :surName AND lastName = :lastName";
+                $sql = "SELECT * FROM usertable WHERE lastName = :surName AND surName = :lastName";
                 $stmt = $pdo->prepare($sql);
                 $stmt->bindParam('surName',$param_sname,PDO::PARAM_STR);
                 $stmt->bindParam('lastName',$param_lname,PDO::PARAM_STR);
@@ -121,7 +121,7 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
                 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 unset($stmt);
             } else{
-                $sql = "SELECT * FROM usertable WHERE surName = :surName";
+                $sql = "SELECT * FROM usertable WHERE lastName = :surName";
                 $stmt = $pdo->prepare($sql);
                 $stmt->bindParam('surName',$param_sname,PDO::PARAM_STR);
                 $param_sname = $surName;
@@ -130,7 +130,7 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
                 unset($stmt);
             }
         } elseif(!empty($lastName)){
-            $sql = "SELECT * FROM usertable WHERE lastName = :lastName";
+            $sql = "SELECT * FROM usertable WHERE surName = :lastName";
             $stmt = $pdo->prepare($sql);
             $stmt->bindParam('lastName',$param_lname,PDO::PARAM_STR);
             $param_lname = $lastName;
@@ -185,7 +185,7 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
         $pdo = DBConn::connect();
 
         $sql = "UPDATE usertable
-                SET email = $userEmail, password = $password, surName = $surName, lastName = $lastName
+                SET email = $userEmail, password = $password, lastName = $surName, surName = $lastName
                 WHERE id = $id";
 
         try{
@@ -208,7 +208,7 @@ abstract class ActiveRecord extends UserModel implements IActiveRecord {
         $attributes = $this->getAttributes();
         $pdo = DBConn::connect();
 
-        $sql = "INSERT INTO usertable(email, password, surName, lastName)
+        $sql = "INSERT INTO usertable(email, password, lastName, surName)
                 VALUES (:email, :password, :surName, :lastName)";
 
         try{
