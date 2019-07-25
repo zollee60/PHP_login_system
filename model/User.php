@@ -95,7 +95,7 @@ class User extends ActiveRecord {
             if($this->validatePasswords()){
                 if($this->validateNames()){
                     $this->save();
-                    header("location: login.php");
+                    header("location: index.html");
                 }
             }
         }

@@ -6,7 +6,7 @@ require "model/User.php";
 session_start();
 
 if(!User::loggedIn()){
-    header("location: login.php");
+    header("location: index.html");
     exit;
 }
 ?>

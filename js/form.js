@@ -70,28 +70,27 @@ function process(scope) {
         data[inputs[i].name] = inputs[i].value;
     }
     let dataJSON = JSON.stringify(data);
-    let xhrSend = new XMLHttpRequest();
-    xhrSend.onload = function () {};
-    xhrSend.open("post", "process.php", true);
-    xhrSend.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    xhrSend.send(dataJSON);
-
-    let xhrGet = new XMLHttpRequest();
-    xhrGet.onload = function () {
-        let resData = JSON.parse(this.responseText);
-        console.log(resData);
-        Object.keys(resData).forEach(function (key) {
-            let e = resData[key];
-            if(document.getElementById(key+"span")!==null){
-                let div = document.getElementById(key+"G");
-                div.classList.add("has-error");
-                let span = document.getElementById(key+"span");
-                span.innerHTML = e;
-            }
-        });
+    let xhr = new XMLHttpRequest();
+    xhr.onload = function () {};
+    xhr.open("POST", "process.php", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            alert(xhr.responseText);
+            let resData = JSON.parse(this.responseText);
+            Object.keys(resData).forEach(function (key) {
+                let e = resData[key];
+                if(document.getElementById(key+"span")!==null){
+                    let div = document.getElementById(key+"G");
+                    div.classList.add("has-error");
+                    let span = document.getElementById(key+"span");
+                    span.innerHTML = e;
+                }
+            });
+        }
     };
-    xhrGet.open("get", "process.php", true);
-    xhrGet.send();
+    xhr.send(dataJSON);
+    return false;
 }
 
 function createForm(scope){
@@ -114,7 +113,8 @@ function createForm(scope){
         login.type = "submit";
         login.className = "btn btn-primary";
         login.value = "Bejelentkezés";
-        login.id = "login";
+        login.id = "btn-submit";
+
         buttons.appendChild(login);
 
     }
@@ -126,7 +126,8 @@ function createForm(scope){
         register.type = "submit";
         register.className = "btn btn-primary";
         register.value = "Regisztráció";
-        register.id = "register";
+        register.id = "btn-submit";
+
         let reset = document.createElement("input");
         reset.type = "reset";
         reset.className = "btn btn-deafult";
@@ -137,10 +138,7 @@ function createForm(scope){
     let link = createLink(scope);
     form.appendChild(buttons);
     form.appendChild(link);
-    form.addEventListener("submit", function () {
-        process(scope);
-    });
-
+    form.addEventListener("submit", process(scope));
     return form;
 }
 
