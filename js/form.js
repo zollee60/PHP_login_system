@@ -63,20 +63,12 @@ function createLink(scope){
     return text;
 }
 
-function process(scope) {
-    let inputs = document.getElementsByTagName("input");
-    let data = {scope: scope};
-    for(let i = 0; i < inputs.length; i++){
-        data[inputs[i].name] = inputs[i].value;
-    }
-    let dataJSON = JSON.stringify(data);
+function sendAjax(data) {
     let xhr = new XMLHttpRequest();
-    xhr.onload = function () {};
-    xhr.open("POST", "process.php", true);
+    xhr.open("POST", "process.php");
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.onreadystatechange = function() {
         if (xhr.readyState === 4 && xhr.status === 200) {
-            alert(xhr.responseText);
             let resData = JSON.parse(this.responseText);
             Object.keys(resData).forEach(function (key) {
                 let e = resData[key];
@@ -89,7 +81,25 @@ function process(scope) {
             });
         }
     };
-    xhr.send(dataJSON);
+    xhr.send(data);
+}
+
+function process(scope) {
+    let inputs = document.getElementsByTagName("input");
+    console.log(inputs);
+    let filteredInputs = [];
+    for(let i = 0; i < inputs.length; i++){
+        if(inputs[i].type !== "submit"){
+            filteredInputs.push(inputs[i]);
+        }
+    }
+    console.log(filteredInputs);
+    let data = {scope: scope};
+    for(let i = 0; i < inputs.length; i++){
+        data[filteredInputs[i].name] = filteredInputs[i].value;
+    }
+    let dataJSON = JSON.stringify(data);
+    sendAjax(dataJSON);
     return false;
 }
 
@@ -99,7 +109,6 @@ function createForm(scope){
         document.getElementById("form-wrapper").removeChild(form);
     }
     let form = document.createElement("form");
-    form.method = "post";
     form.id = "form";
     let buttons = document.createElement("div");
     buttons.className = "form-group";
@@ -114,9 +123,7 @@ function createForm(scope){
         login.className = "btn btn-primary";
         login.value = "Bejelentkezés";
         login.id = "btn-submit";
-
         buttons.appendChild(login);
-
     }
     if(scope === "register"){
         title.innerHTML = "Regisztráció";
@@ -127,7 +134,6 @@ function createForm(scope){
         register.className = "btn btn-primary";
         register.value = "Regisztráció";
         register.id = "btn-submit";
-
         let reset = document.createElement("input");
         reset.type = "reset";
         reset.className = "btn btn-deafult";
@@ -138,7 +144,7 @@ function createForm(scope){
     let link = createLink(scope);
     form.appendChild(buttons);
     form.appendChild(link);
-    form.addEventListener("submit", process(scope));
+    form.onsubmit = process(scope);
     return form;
 }
 
