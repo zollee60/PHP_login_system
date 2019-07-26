@@ -95,7 +95,7 @@ function process(scope) {
     }
     console.log(filteredInputs);
     let data = {scope: scope};
-    for(let i = 0; i < inputs.length; i++){
+    for(let i = 0; i < filteredInputs.length; i++){
         data[filteredInputs[i].name] = filteredInputs[i].value;
     }
     let dataJSON = JSON.stringify(data);
@@ -144,7 +144,9 @@ function createForm(scope){
     let link = createLink(scope);
     form.appendChild(buttons);
     form.appendChild(link);
-    form.onsubmit = process(scope);
+    form.addEventListener("submit", function () {
+        process(scope);
+    });
     return form;
 }
 
