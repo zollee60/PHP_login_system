@@ -125,6 +125,8 @@ class User extends ActiveRecord {
                     } else{
                         $this->setError("password", "A jelszó helytelen!");
                     }
+                } else{
+                    $this->setError("email", "Ezzel az e-mail címmel nem létezik felhasználó!");
                 }
             } else{
                 $this->setError("password", "Add meg a jelszavad!");

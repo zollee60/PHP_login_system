@@ -69,16 +69,21 @@ function sendAjax(data) {
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.onreadystatechange = function() {
         if (xhr.readyState === 4 && xhr.status === 200) {
-            let resData = JSON.parse(this.responseText);
-            Object.keys(resData).forEach(function (key) {
-                let e = resData[key];
-                if(document.getElementById(key+"span")!==null){
-                    let div = document.getElementById(key+"G");
-                    div.classList.add("has-error");
-                    let span = document.getElementById(key+"span");
-                    span.innerHTML = e;
-                }
-            });
+            if(this.responseType === "json"){
+                console.log(this.responseText);
+                let resData = JSON.parse(this.responseText);
+                Object.keys(resData).forEach(function (key) {
+                    let e = resData[key];
+                    if (document.getElementById(key + "span") !== null) {
+                        let div = document.getElementById(key + "G");
+                        div.classList.add("has-error");
+                        let span = document.getElementById(key + "span");
+                        span.innerHTML = e;
+                    }
+                });
+            } else{
+                window.location.href = "userPage.php";
+            }
         }
     };
     xhr.send(data);
@@ -99,8 +104,8 @@ function process(scope) {
         data[filteredInputs[i].name] = filteredInputs[i].value;
     }
     let dataJSON = JSON.stringify(data);
+    console.log(dataJSON);
     sendAjax(dataJSON);
-    return false;
 }
 
 function createForm(scope){
@@ -110,6 +115,7 @@ function createForm(scope){
     }
     let form = document.createElement("form");
     form.id = "form";
+    form.method = "POST";
     let buttons = document.createElement("div");
     buttons.className = "form-group";
     let title = document.createElement("h2");
@@ -144,7 +150,8 @@ function createForm(scope){
     let link = createLink(scope);
     form.appendChild(buttons);
     form.appendChild(link);
-    form.addEventListener("submit", function () {
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
         process(scope);
     });
     return form;
